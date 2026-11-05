@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Home</title>
+</head>
+<body>
+  <h1>Home</h1>
+
+  <div class="profile">
+    <img src="" alt="foto de perfil" class="thumb">
+    <div class="name">...</div>
+  </div>
+
+  <script>
+    async function init() {
+      const response = await fetch("/auth/user")
+      if (!response.ok) {
+        alert("usuário não logado")
+        window.location.href = "/"
+        return
+      }
+      const data = await response.json()
+      const profile = document.querySelector(".profile")
+      const name = profile.querySelector(".name")
+      name.textContent = data.nome
+    }
+    init()
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Login</title>
+  <style>
+    div.tabs input.trigger {
+      display: none;
+    }
+
+    div.tabs input.trigger + * {
+      display: none;
+    }
+
+    div.tabs input.trigger:checked + * {
+      display: block;
+    }
+
+    div.tabs:has(#login:checked) label[for="login"],
+    div.tabs:has(#singin:checked) label[for="singin"] {
+      background-color: red;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Meu Projeto: Exemplo</h1>
+
+  <div class="tabs">
+    <label for="login">login</label>
+    <label for="singin">sign in</label>
+
+    <input id="login" name="zzz" type="radio" class="trigger" checked>
+    <form class="login">
+      <input required type="email" name="email" placeholder="email">
+      <input required type="password" name="password" placeholder="password">
+      <button>entrar</button>
+    </form>
+
+    <input id="singin" name="zzz" type="radio" class="trigger">
+    <form class="signin">
+      <input require type="text" name="nome" placeholder="name">
+      <input required type="number" min="0" max="123" name="idade" placeholder="idade">
+      <input required type="email" name="email" placeholder="email" placeholder="email">
+      <input required minlength="6" type="password" name="password" placeholder="password">
+      <input required minlength="6" type="password" name="password-confirm" placeholder="cofirm password">
+      <button>cadastrar-se</button>
+    </form>
+  </div>
+
+  <script>
+    const frmLogin = document.querySelector("form.login")
+
+    frmLogin.addEventListener("submit", async (event) => {
+      event.preventDefault()
+      const response = await fetch("/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          "email": frmLogin.email.value,
+          "password": frmLogin.password.value,
+        })
+      })
+
+      if (response.status == 404)
+        return alert("Usário não cadastrado")
+
+      if (response.status == 401)
+        return alert("Senha incorreta")
+
+      if (response.ok) {
+        window.location.href = "/home"
+        return
+      }
+
+      return alert("erro não tratado")
+    })
+
+    // ----------------------------------------------------------------------
+
+    const frmSingin = document.querySelector("form.signin")
+
+    frmSingin.addEventListener("submit", async (event) => {
+      event.preventDefault()
+
+      if (frmSingin.password.value !== frmSingin["password-confirm"].value)
+        return alert("As senhas não conferem")
+
+      const response = await fetch("/usuario", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          "nome": frmSingin.nome.value,
+          "idade": parseInt(frmSingin.idade.value),
+          "email": frmSingin.email.value,
+          "password": frmSingin.password.value,
+        })
+      })
+
+      if (response.ok)
+        return frmSingin.reset()
+        
+      alert("deu ruim!")
+    })
+  </script>
+
+</body>
+
+</html>
