@@ -2,31 +2,284 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Dashboard</title>
+  <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-  <h1>Dashboard</h1>
+  <header class="topo">
+    <a class="marca" href="/dashboard">Finance Controller</a>
+    <nav>
+      <a href="/dashboard" class="ativo">Dashboard</a>
+      <a href="/perfil">Minha conta</a>
+    </nav>
+    <div class="profile">
+      <span class="name">...</span>
+      <button class="logout sec mini">sair</button>
+    </div>
+  </header>
 
-  <div class="profile">
-    <img src="" alt="foto de perfil" class="thumb">
-    <div class="name">...</div>
-  </div>
+  <main>
+    <!-- FILTRO DE MÊS -->
+    <div class="linha-form" style="margin-bottom: 16px">
+      <label>Mês: <input type="month" class="filtro-mes"></label>
+      <button class="todos sec">ver tudo</button>
+    </div>
+
+    <!-- RESUMO -->
+    <section class="cards">
+      <div class="card"><div class="rotulo">Receitas</div><div class="valor receita" data-campo="receitas">-</div></div>
+      <div class="card"><div class="rotulo">Despesas</div><div class="valor despesa" data-campo="despesas">-</div></div>
+      <div class="card"><div class="rotulo">Saldo</div><div class="valor" data-campo="saldo">-</div></div>
+    </section>
+
+    <!-- NOVA / EDITAR TRANSAÇÃO -->
+    <section class="painel">
+      <h2 class="titulo-form">Nova transação</h2>
+      <form class="transacao linha-form">
+        <select name="tipo" required>
+          <option value="despesa">despesa</option>
+          <option value="receita">receita</option>
+        </select>
+        <input required name="descricao" maxlength="100" placeholder="descrição">
+        <input required name="valor" type="number" min="0.01" step="0.01" placeholder="valor">
+        <select name="categoria">
+          <option>alimentacao</option>
+          <option>moradia</option>
+          <option>transporte</option>
+          <option>saude</option>
+          <option>lazer</option>
+          <option>educacao</option>
+          <option>salario</option>
+          <option selected>outros</option>
+        </select>
+        <input required name="data" type="date">
+        <button class="salvar">adicionar</button>
+        <button type="button" class="cancelar sec" hidden>cancelar</button>
+      </form>
+    </section>
+
+    <!-- LISTA DE TRANSAÇÕES -->
+    <section class="painel">
+      <h2>Transações</h2>
+      <div class="tabela-rolagem">
+        <table>
+          <thead>
+            <tr><th>Data</th><th>Descrição</th><th>Categoria</th><th class="num">Valor</th><th></th></tr>
+          </thead>
+          <tbody class="lista"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- MÊS A MÊS (não usa o filtro de mês: mostra todos) -->
+    <section class="painel">
+      <h2>Mês a mês</h2>
+      <div class="legenda"><span class="receita">■ receitas</span><span class="despesa">■ despesas</span></div>
+      <div class="grafico"></div>
+    </section>
+
+    <!-- POR CATEGORIA -->
+    <section class="painel">
+      <h2>Por categoria</h2>
+      <div class="tabela-rolagem">
+        <table>
+          <tbody class="categorias"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
 
   <script>
-    async function init() {
+    const moeda = (v) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+    // data local no formato YYYY-MM-DD (toISOString puro usaria UTC)
+    const hoje = () => {
+      const d = new Date()
+      d.setMinutes(d.getMinutes() - d.getTimezoneOffset())
+      return d.toISOString().slice(0, 10)
+    }
+
+    const filtroMes = document.querySelector(".filtro-mes")
+    const frmTransacao = document.querySelector("form.transacao")
+    const transacoes = {}   // id -> transação, para preencher o form na edição
+    let editandoId = null   // null = criando nova; número = editando essa
+
+    // ?mes=YYYY-MM quando houver mês selecionado
+    function query() {
+      return filtroMes.value ? `?mes=${filtroMes.value}` : ""
+    }
+
+    // Faz o fetch e volta para o login se a sessão tiver acabado
+    async function api(url, options) {
+      const response = await fetch(url, options)
+      if (response.status == 401) {
+        window.location.href = "/"
+        throw new Error("não logado")
+      }
+      return response
+    }
+
+    // ----------------------------------------------------------------------
+
+    async function carregarUsuario() {
       const response = await fetch("/auth/user")
       if (!response.ok) {
-        alert("usuário não logado")
         window.location.href = "/"
-        return
+        return false
       }
       const data = await response.json()
-      const profile = document.querySelector(".profile")
-      const name = profile.querySelector(".name")
-      name.textContent = data.nome
+      document.querySelector(".profile .name").textContent = data.nome
+      return true
+    }
+
+    async function carregarResumo() {
+      const data = await (await api("/dashboard/resumo" + query())).json()
+      for (const campo of ["receitas", "despesas", "saldo"]) {
+        document.querySelector(`[data-campo="${campo}"]`).textContent = moeda(data[campo])
+      }
+      // saldo verde se positivo, vermelho se negativo
+      document.querySelector(`[data-campo="saldo"]`).className = "valor " + (data.saldo < 0 ? "despesa" : "receita")
+    }
+
+    async function carregarTransacoes() {
+      const data = await (await api("/transacao" + query())).json()
+      const tbody = document.querySelector(".lista")
+      tbody.innerHTML = ""
+      if (data.length == 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="vazio">nenhuma transação</td></tr>`
+        return
+      }
+      for (const t of data) {
+        transacoes[t.id] = t
+        const tr = document.createElement("tr")
+        tr.innerHTML = `
+          <td>${t.data.split("-").reverse().join("/")}</td>
+          <td></td>
+          <td>${t.categoria}</td>
+          <td class="num ${t.tipo}">${t.tipo == "despesa" ? "-" : ""}${moeda(t.valor)}</td>
+          <td class="acoes">
+            <button class="sec mini" data-acao="editar" data-id="${t.id}">editar</button>
+            <button class="sec mini" data-acao="excluir" data-id="${t.id}">excluir</button>
+          </td>
+        `
+        tr.children[1].textContent = t.descricao // textContent evita injeção de HTML
+        tbody.appendChild(tr)
+      }
+    }
+
+    async function carregarCategorias() {
+      const data = await (await api("/dashboard/categorias" + query())).json()
+      const tbody = document.querySelector(".categorias")
+      tbody.innerHTML = data.length == 0 ? `<tr><td class="vazio">sem dados</td></tr>` : ""
+      for (const c of data) {
+        tbody.innerHTML += `<tr><td>${c.categoria}</td><td class="${c.tipo}">${c.tipo}</td><td class="num">${moeda(c.total)}</td></tr>`
+      }
+    }
+
+    async function carregarMensal() {
+      const data = await (await api("/dashboard/mensal")).json()
+      const grafico = document.querySelector(".grafico")
+      if (data.length == 0) {
+        grafico.innerHTML = `<div class="vazio">sem dados</div>`
+        return
+      }
+      // a maior barra ocupa 100% da largura; as outras são proporcionais a ela
+      const maior = Math.max(...data.map(m => Math.max(m.receitas, m.despesas)))
+      const largura = (v) => maior ? (v / maior * 100) + "%" : "0"
+      grafico.innerHTML = ""
+      for (const m of data) {
+        const [ano, mes] = m.mes.split("-")
+        grafico.innerHTML += `
+          <div class="mes">
+            <div>${mes}/${ano}</div>
+            <div class="barras">
+              <div class="barra receita" style="width: ${largura(m.receitas)}" title="receitas: ${moeda(m.receitas)}"></div>
+              <div class="barra despesa" style="width: ${largura(m.despesas)}" title="despesas: ${moeda(m.despesas)}"></div>
+            </div>
+            <div class="saldo ${m.saldo < 0 ? "despesa" : "receita"}">${moeda(m.saldo)}</div>
+          </div>`
+      }
+    }
+
+    function atualizarTudo() {
+      return Promise.all([carregarResumo(), carregarTransacoes(), carregarCategorias(), carregarMensal()])
+    }
+
+    // ----------------------------------------------------------------------
+
+    // Coloca o formulário em modo "editar" (com uma transação) ou "nova" (sem nada)
+    function modoEdicao(t) {
+      editandoId = t ? t.id : null
+      document.querySelector(".titulo-form").textContent = t ? "Editar transação" : "Nova transação"
+      frmTransacao.querySelector(".salvar").textContent = t ? "salvar" : "adicionar"
+      frmTransacao.querySelector(".cancelar").hidden = !t
+      if (t) {
+        frmTransacao.tipo.value = t.tipo
+        frmTransacao.descricao.value = t.descricao
+        frmTransacao.valor.value = t.valor
+        frmTransacao.categoria.value = t.categoria
+        frmTransacao.data.value = t.data
+        frmTransacao.descricao.focus()
+      } else {
+        frmTransacao.descricao.value = ""
+        frmTransacao.valor.value = ""
+      }
+    }
+
+    frmTransacao.querySelector(".cancelar").addEventListener("click", () => modoEdicao(null))
+
+    frmTransacao.addEventListener("submit", async (event) => {
+      event.preventDefault()
+      // sem id -> POST /transacao (criar) | com id -> PUT /transacao/:id (editar)
+      const url = editandoId ? `/transacao/${editandoId}` : "/transacao"
+      const response = await api(url, {
+        method: editandoId ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tipo: frmTransacao.tipo.value,
+          descricao: frmTransacao.descricao.value,
+          valor: parseFloat(frmTransacao.valor.value),
+          categoria: frmTransacao.categoria.value,
+          data: frmTransacao.data.value,
+        })
+      })
+      if (!response.ok)
+        return alert("Erro ao salvar: " + await response.text())
+      modoEdicao(null)
+      atualizarTudo()
+    })
+
+    document.querySelector(".lista").addEventListener("click", async (event) => {
+      const { acao, id } = event.target.dataset
+      if (!id) return
+      if (acao == "editar")
+        return modoEdicao(transacoes[id])
+      if (!confirm("Excluir esta transação?")) return
+      await api(`/transacao/${id}`, { method: "DELETE" })
+      if (editandoId == id) modoEdicao(null)
+      atualizarTudo()
+    })
+
+    filtroMes.addEventListener("change", atualizarTudo)
+    document.querySelector(".todos").addEventListener("click", () => {
+      filtroMes.value = ""
+      atualizarTudo()
+    })
+
+    document.querySelector(".logout").addEventListener("click", async () => {
+      await fetch("/auth/logout", { method: "POST" })
+      window.location.href = "/"
+    })
+
+    // ----------------------------------------------------------------------
+
+    async function init() {
+      if (!await carregarUsuario()) return
+      filtroMes.value = hoje().slice(0, 7)   // começa no mês atual
+      frmTransacao.data.value = hoje()
+      atualizarTudo()
     }
     init()
   </script>
-
 </body>
 </html>

@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { setCookie, getCookie, deleteCookie } from 'hono/cookie'
 import { db } from "../database-connect"
-import { loggedUsers, getUsuarioLogado } from '../middleware/auth'
+import { loggedUsers, getUsuarioLogado, criarSessao, SESSAO_HORAS } from '../middleware/auth'
 
 const route = new Hono()
 
@@ -19,10 +19,12 @@ route.post("/login", async (c) => {
   const isMatch = await Bun.password.verify(body.password, data.password_hash)
   if (!isMatch)
     return c.json({ msg: "senha inválida" }, { status: 401 })
-  const uuid = crypto.randomUUID()
   delete data.password_hash
-  loggedUsers[uuid] = data
-  setCookie(c, "ses", uuid, { httpOnly: true, path: "/", sameSite: "Lax" })
+  const uuid = criarSessao(data)
+  setCookie(c, "ses", uuid, {
+    httpOnly: true, path: "/", sameSite: "Lax",
+    maxAge: SESSAO_HORAS * 60 * 60,   // em segundos
+  })
   return c.json(true)
 })
 

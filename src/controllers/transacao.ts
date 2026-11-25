@@ -4,6 +4,9 @@ import type { UsuarioLogado } from "../middleware/auth"
 
 const usuarioId = (c: Context) => (c.get("usuario") as UsuarioLogado).id
 
+// guarda o valor com no máximo 2 casas (centavos)
+const centavos = (v: number) => Math.round(v * 100) / 100
+
 export const create = async (c: Context) => {
   const body = await c.req.json()
   const query = db.query(`
@@ -14,7 +17,7 @@ export const create = async (c: Context) => {
     ":usuario_id": usuarioId(c),
     ":tipo": body.tipo,
     ":descricao": body.descricao,
-    ":valor": body.valor,
+    ":valor": centavos(body.valor),
     ":categoria": body.categoria ?? "outros",
     ":data": body.data,
   })
@@ -56,7 +59,7 @@ export const updateOne = async (c: Context) => {
     ":usuario_id": usuarioId(c),
     ":tipo": body.tipo,
     ":descricao": body.descricao,
-    ":valor": body.valor,
+    ":valor": centavos(body.valor),
     ":categoria": body.categoria ?? "outros",
     ":data": body.data,
   })

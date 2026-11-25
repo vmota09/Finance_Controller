@@ -3,53 +3,47 @@
 
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Login</title>
-  <style>
-    div.tabs input.trigger {
-      display: none;
-    }
-
-    div.tabs input.trigger + * {
-      display: none;
-    }
-
-    div.tabs input.trigger:checked + * {
-      display: block;
-    }
-
-    div.tabs:has(#login:checked) label[for="login"],
-    div.tabs:has(#singin:checked) label[for="singin"] {
-      background-color: red;
-    }
-  </style>
+  <link rel="stylesheet" href="./style.css">
 </head>
 
 <body>
-  <h1>Finance Controller</h1>
+  <main class="tela-login">
+    <div class="caixa-login painel">
+      <h1>Finance Controller</h1>
+      <p class="sub">Controle financeiro pessoal</p>
 
-  <div class="tabs">
-    <label for="login">login</label>
-    <label for="singin">sign in</label>
+      <div class="tabs">
+        <div class="abas">
+          <label for="login">entrar</label>
+          <label for="singin">cadastrar</label>
+        </div>
 
-    <input id="login" name="zzz" type="radio" class="trigger" checked>
-    <form class="login">
-      <input required type="email" name="email" placeholder="email">
-      <input required type="password" name="password" placeholder="password">
-      <button>entrar</button>
-    </form>
+        <input id="login" name="zzz" type="radio" class="trigger" checked>
+        <form class="login">
+          <input required type="email" name="email" placeholder="email">
+          <input required type="password" name="password" placeholder="senha">
+          <button>entrar</button>
+        </form>
 
-    <input id="singin" name="zzz" type="radio" class="trigger">
-    <form class="signin">
-      <input require type="text" name="nome" placeholder="name">
-      <input required type="number" min="0" max="123" name="idade" placeholder="idade">
-      <input required type="email" name="email" placeholder="email" placeholder="email">
-      <input required minlength="6" type="password" name="password" placeholder="password">
-      <input required minlength="6" type="password" name="password-confirm" placeholder="cofirm password">
-      <button>cadastrar-se</button>
-    </form>
-  </div>
+        <input id="singin" name="zzz" type="radio" class="trigger">
+        <form class="signin">
+          <input required type="text" name="nome" maxlength="80" placeholder="nome">
+          <input required type="number" min="0" max="130" name="idade" placeholder="idade">
+          <input required type="email" name="email" placeholder="email">
+          <input required minlength="6" type="password" name="password" placeholder="senha (mín. 6)">
+          <input required minlength="6" type="password" name="password-confirm" placeholder="confirmar senha">
+          <button>cadastrar-se</button>
+        </form>
+      </div>
+    </div>
+  </main>
 
   <script>
+    // Se já estiver logado, vai direto para o dashboard
+    fetch("/auth/user").then(r => { if (r.ok) window.location.href = "/dashboard" })
+
     const frmLogin = document.querySelector("form.login")
 
     frmLogin.addEventListener("submit", async (event) => {
@@ -64,7 +58,7 @@
       })
 
       if (response.status == 404)
-        return alert("Usário não cadastrado")
+        return alert("Usuário não cadastrado")
 
       if (response.status == 401)
         return alert("Senha incorreta")
@@ -98,10 +92,17 @@
         })
       })
 
-      if (response.ok)
-        return frmSingin.reset()
-        
-      alert("deu ruim!")
+      if (response.status == 409)
+        return alert("Este email já está cadastrado")
+
+      if (response.ok) {
+        frmLogin.email.value = frmSingin.email.value   // já deixa o email preenchido no login
+        frmSingin.reset()
+        document.querySelector("#login").checked = true
+        return alert("Cadastro feito! Agora é só entrar.")
+      }
+
+      alert("Erro no cadastro: " + await response.text())
     })
   </script>
 

@@ -1,0 +1,147 @@
+/* ==========================================================================
+   Finance Controller - estilo compartilhado por todas as páginas
+   ========================================================================== */
+
+/* Cores em variáveis: o tema escuro só troca os valores */
+:root {
+  --fundo: #f4f5f7;
+  --cartao: #ffffff;
+  --texto: #1d2330;
+  --suave: #6b7280;
+  --borda: #e2e5ea;
+  --primaria: #2563eb;
+  --primaria-texto: #ffffff;
+  --receita: #15803d;
+  --despesa: #c62828;
+  --raio: 8px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fundo: #14171c;
+    --cartao: #1d2128;
+    --texto: #e6e8eb;
+    --suave: #9aa1ac;
+    --borda: #2e333c;
+    --primaria: #5b8def;
+    --receita: #4ade80;
+    --despesa: #f87171;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--fundo);
+  color: var(--texto);
+  line-height: 1.4;
+}
+
+h1, h2 { margin: 0 0 12px; }
+h2 { font-size: 1.1rem; }
+
+main { max-width: 960px; margin: 0 auto; padding: 16px; }
+
+/* ---------- topo (dashboard e perfil) ---------- */
+.topo {
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  padding: 12px 16px;
+  background: var(--cartao);
+  border-bottom: 1px solid var(--borda);
+}
+.topo .marca { font-weight: 700; color: var(--texto); text-decoration: none; }
+.topo nav { display: flex; gap: 12px; flex: 1; }
+.topo nav a { color: var(--suave); text-decoration: none; }
+.topo nav a.ativo, .topo nav a:hover { color: var(--primaria); }
+.topo .profile { display: flex; align-items: center; gap: 8px; }
+
+/* ---------- blocos ---------- */
+.painel {
+  background: var(--cartao);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.card { background: var(--cartao); border: 1px solid var(--borda); border-radius: var(--raio); padding: 14px; }
+.card .rotulo { color: var(--suave); font-size: 0.9rem; }
+.card .valor { font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.receita { color: var(--receita); }
+.despesa { color: var(--despesa); }
+.vazio { color: var(--suave); }
+
+/* ---------- formulários ---------- */
+input, select, button { font: inherit; }
+
+input, select {
+  padding: 8px 10px;
+  border: 1px solid var(--borda);
+  border-radius: 6px;
+  background: var(--cartao);
+  color: var(--texto);
+  min-width: 0;
+}
+input:focus, select:focus { outline: 2px solid var(--primaria); outline-offset: -1px; }
+
+button {
+  padding: 8px 14px;
+  border: 1px solid var(--primaria);
+  border-radius: 6px;
+  background: var(--primaria);
+  color: var(--primaria-texto);
+  cursor: pointer;
+}
+button:hover { filter: brightness(1.08); }
+button.sec { background: transparent; color: var(--texto); border-color: var(--borda); }
+button.perigo { background: var(--despesa); border-color: var(--despesa); }
+button.mini { padding: 4px 8px; font-size: 0.85rem; }
+
+.linha-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.linha-form input[name="descricao"] { flex: 1 1 180px; }
+.linha-form input[name="valor"] { width: 120px; }
+
+.campos { display: grid; gap: 10px; }
+.campos label { display: grid; gap: 4px; color: var(--suave); font-size: 0.9rem; }
+
+/* ---------- tabelas ---------- */
+.tabela-rolagem { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--borda); }
+th { color: var(--suave); font-weight: 600; font-size: 0.85rem; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.acoes { text-align: right; white-space: nowrap; }
+
+/* ---------- gráfico mês a mês ---------- */
+.legenda { display: flex; gap: 16px; font-size: 0.85rem; margin-bottom: 8px; }
+.grafico .mes { display: grid; grid-template-columns: 64px 1fr 110px; gap: 8px; align-items: center; margin-bottom: 8px; }
+.grafico .barras { display: flex; flex-direction: column; gap: 3px; }
+.grafico .barra { height: 12px; border-radius: 3px; min-width: 2px; }
+.grafico .barra.receita { background: var(--receita); }
+.grafico .barra.despesa { background: var(--despesa); }
+.grafico .saldo { text-align: right; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+
+/* ---------- tela de login ---------- */
+.tela-login { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
+.caixa-login { width: 100%; max-width: 380px; }
+.caixa-login h1 { text-align: center; margin-bottom: 4px; }
+.caixa-login .sub { text-align: center; color: var(--suave); margin: 0 0 16px; }
+
+/* abas feitas só com CSS (radio escondido + label), como no exemplo do professor */
+.tabs .abas { display: flex; margin-bottom: 16px; border-bottom: 1px solid var(--borda); }
+.tabs .abas label { flex: 1; text-align: center; padding: 8px; cursor: pointer; color: var(--suave); border-bottom: 2px solid transparent; }
+.tabs input.trigger { display: none; }
+.tabs input.trigger + form { display: none; }
+.tabs input.trigger:checked + form { display: grid; gap: 10px; }
+.tabs:has(#login:checked) label[for="login"],
+.tabs:has(#singin:checked) label[for="singin"] { color: var(--primaria); border-bottom-color: var(--primaria); }
+
+/* ---------- celular ---------- */
+@media (max-width: 560px) {
+  .grafico .mes { grid-template-columns: 56px 1fr 90px; }
+  .linha-form input, .linha-form select, .linha-form button { flex: 1 1 100%; width: auto; }
+}

@@ -5,7 +5,7 @@ import { requireAuth } from '../middleware/auth'
 const route = new Hono()
 route.use('*', requireAuth)
 
-route.get('/resumo', controller.resumo)          // ?mes=YYYY-MM (opcional)
-route.get('/categorias', controller.porCategoria) // ?mes=YYYY-MM (opcional)
+route.get('/resumo', controller.resumo)          
+route.get('/categorias', controller.porCategoria) 
 route.get('/mensal', controller.mensal)          // totais mês a mês
 export { route }

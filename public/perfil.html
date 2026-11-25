@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Minha conta</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <header class="topo">
+    <a class="marca" href="/dashboard">Finance Controller</a>
+    <nav>
+      <a href="/dashboard">Dashboard</a>
+      <a href="/perfil" class="ativo">Minha conta</a>
+    </nav>
+    <div class="profile">
+      <span class="name">...</span>
+      <button class="logout sec mini">sair</button>
+    </div>
+  </header>
+
+  <main>
+    <h1>Minha conta</h1>
+
+    <!-- DADOS PESSOAIS -->
+    <section class="painel">
+      <h2>Dados pessoais</h2>
+      <form class="dados campos">
+        <label>Nome <input required name="nome" maxlength="80"></label>
+        <label>Idade <input required name="idade" type="number" min="0" max="130"></label>
+        <label>Email <input required name="email" type="email"></label>
+        <div><button>salvar dados</button></div>
+      </form>
+    </section>
+
+    <!-- TROCAR SENHA -->
+    <section class="painel">
+      <h2>Trocar senha</h2>
+      <form class="senha campos">
+        <label>Nova senha <input required minlength="6" name="password" type="password"></label>
+        <label>Confirmar nova senha <input required minlength="6" name="password-confirm" type="password"></label>
+        <div><button>trocar senha</button></div>
+      </form>
+    </section>
+
+    <!-- EXCLUIR CONTA -->
+    <section class="painel">
+      <h2>Excluir conta</h2>
+      <p class="vazio">Apaga sua conta e todas as suas transações. Não dá para desfazer.</p>
+      <button class="excluir perigo">excluir minha conta</button>
+    </section>
+  </main>
+
+  <script>
+    const frmDados = document.querySelector("form.dados")
+    const frmSenha = document.querySelector("form.senha")
+    let usuario = null   // dados atuais do usuário logado
+
+    // Faz o fetch e volta para o login se a sessão tiver acabado
+    async function api(url, options) {
+      const response = await fetch(url, options)
+      if (response.status == 401) {
+        window.location.href = "/"
+        throw new Error("não logado")
+      }
+      return response
+    }
+
+    // PUT /usuario/:id sempre manda nome, idade e email (+ senha se for trocar)
+    function salvar(extra) {
+      return api(`/usuario/${usuario.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nome: frmDados.nome.value,
+          idade: parseInt(frmDados.idade.value),
+          email: frmDados.email.value,
+          ...extra,
+        })
+      })
+    }
+
+    // ----------------------------------------------------------------------
+
+    frmDados.addEventListener("submit", async (event) => {
+      event.preventDefault()
+      const response = await salvar({})
+      if (response.status == 409)
+        return alert("Este email já é usado por outra conta")
+      if (!response.ok)
+        return alert("Erro ao salvar: " + await response.text())
+      usuario = await response.json()
+      document.querySelector(".profile .name").textContent = usuario.nome
+      alert("Dados salvos!")
+    })
+
+    frmSenha.addEventListener("submit", async (event) => {
+      event.preventDefault()
+      if (frmSenha.password.value !== frmSenha["password-confirm"].value)
+        return alert("As senhas não conferem")
+      const response = await salvar({ password: frmSenha.password.value })
+      if (!response.ok)
+        return alert("Erro ao trocar a senha: " + await response.text())
+      frmSenha.reset()
+      alert("Senha trocada!")
+    })
+
+    document.querySelector(".excluir").addEventListener("click", async () => {
+      if (!confirm("Tem certeza? Sua conta e todas as transações serão apagadas."))
+        return
+      const response = await api(`/usuario/${usuario.id}`, { method: "DELETE" })
+      if (!response.ok)
+        return alert("Erro ao excluir a conta")
+      alert("Conta excluída.")
+      window.location.href = "/"
+    })
+
+    document.querySelector(".logout").addEventListener("click", async () => {
+      await fetch("/auth/logout", { method: "POST" })
+      window.location.href = "/"
+    })
+
+    // ----------------------------------------------------------------------
+
+    async function init() {
+      const response = await fetch("/auth/user")
+      if (!response.ok) {
+        window.location.href = "/"
+        return
+      }
+      const logado = await response.json()
+      usuario = await (await api(`/usuario/${logado.id}`)).json()   // traz a idade também
+      document.querySelector(".profile .name").textContent = usuario.nome
+      frmDados.nome.value = usuario.nome
+      frmDados.idade.value = usuario.idade
+      frmDados.email.value = usuario.email
+    }
+    init()
+  </script>
+</body>
+</html>
