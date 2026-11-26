@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Redefinir senha</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+  <main class="tela-login">
+    <div class="caixa-login painel">
+      <h1>Nova senha</h1>
+      <p class="sub">Escolha uma nova senha para a sua conta.</p>
+
+      <form class="redefinir campos">
+        <input required minlength="6" type="password" name="password" placeholder="nova senha (mín. 6)">
+        <input required minlength="6" type="password" name="password-confirm" placeholder="confirmar nova senha">
+        <button>salvar nova senha</button>
+      </form>
+
+      <!-- aparece quando a página é aberta sem o código do link -->
+      <p class="sem-codigo vazio" hidden>
+        Link incompleto. Peça um novo link em <a href="/">esqueci minha senha</a>.
+      </p>
+    </div>
+  </main>
+
+  <script type="module" src="./senha.js"></script>
+  <script>
+    const frm = document.querySelector("form.redefinir")
+    // o link do email é /redefinir-senha?codigo=...
+    const codigo = new URLSearchParams(window.location.search).get("codigo")
+
+    if (!codigo) {
+      frm.hidden = true
+      document.querySelector(".sem-codigo").hidden = false
+    }
+
+    frm.addEventListener("submit", async (event) => {
+      event.preventDefault()
+      if (frm.password.value !== frm["password-confirm"].value)
+        return alert("As senhas não conferem")
+
+      const response = await fetch("/auth/redefinir-senha", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ codigo, password: frm.password.value })
+      })
+
+      if (response.status == 400)
+        return alert("Este link é inválido ou já expirou. Peça um novo em \"esqueci minha senha\".")
+      if (!response.ok)
+        return alert("Erro: " + await response.text())
+
+      alert("Senha alterada! Agora é só entrar com a nova senha.")
+      window.location.href = "/"
+    })
+  </script>
+</body>
+
+</html>

@@ -1,6 +1,7 @@
 import index from "../public/index.html"
 import dashboard from "../public/dashboard.html"
 import perfil from "../public/perfil.html"
+import redefinirSenha from "../public/redefinir-senha.html"
 
 import { routes } from './routes'
 import { Hono } from 'hono'
@@ -14,6 +15,7 @@ const srv = Bun.serve({
     "/": index,                 // login / cadastro
     "/dashboard": dashboard,    // painel do usuário logado
     "/perfil": perfil,          // minha conta (editar dados, senha, excluir)
+    "/redefinir-senha": redefinirSenha,   // link do email de recuperação de senha
   },
   fetch: app.fetch,           //todo o resto vão pra api
 })

@@ -34,10 +34,11 @@ export function atualizarSessoes(id: number, dados: Partial<UsuarioLogado>) {
     if (sessao.usuario.id === id) Object.assign(sessao.usuario, dados)
 }
 
-// Encerra todas as sessões do usuário (depois de excluir a conta)
-export function encerrarSessoes(id: number) {
+// Encerra as sessões do usuário (depois de excluir a conta ou trocar a senha)
+// exceto: uuid de uma sessão que deve continuar (a de quem trocou a senha)
+export function encerrarSessoes(id: number, exceto?: string) {
   for (const [uuid, sessao] of Object.entries(loggedUsers))
-    if (sessao.usuario.id === id) delete loggedUsers[uuid]
+    if (sessao.usuario.id === id && uuid !== exceto) delete loggedUsers[uuid]
 }
 
 // Bloqueia a rota se não houver usuário logado

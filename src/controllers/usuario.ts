@@ -1,5 +1,5 @@
 import type { Context } from "hono"
-import { deleteCookie } from "hono/cookie"
+import { deleteCookie, getCookie } from "hono/cookie"
 import { db } from "../database-connect"
 import { atualizarSessoes, encerrarSessoes } from "../middleware/auth"
 
@@ -24,11 +24,6 @@ export const create = async (c: Context) => {
   return c.json({ id: resp.lastInsertRowid }, { status: 201 })
 }
 
-export const listAll = (c: Context) => {
-  const data = db.query(`SELECT ${COLS} FROM usuarios`).all()
-  return c.json(data)
-}
-
 export const listOne = (c: Context) => {
   const data = db.query(`SELECT ${COLS} FROM usuarios WHERE id=:id`).get({ ":id": Number(c.req.param("id")) })
   if (!data)
@@ -50,6 +45,15 @@ export const deleteOne = (c: Context) => {
 export const updateOne = async (c: Context) => {
   const id = Number(c.req.param("id"))
   const body = await c.req.json()
+  // para trocar a senha, precisa confirmar a senha atual
+  // (assim quem pegar o computador logado não consegue trocar a senha)
+  if (body.password) {
+    if (!body.senhaAtual)
+      return c.json({ msg: "informe a senha atual" }, { status: 400 })
+    const atual: any = db.query(`SELECT password_hash FROM usuarios WHERE id=:id`).get({ ":id": id })
+    if (!atual || !await Bun.password.verify(body.senhaAtual, atual.password_hash))
+      return c.json({ msg: "senha atual incorreta" }, { status: 403 })
+  }
   // o novo email não pode ser de outra pessoa
   const outro = db.query(`SELECT id FROM usuarios WHERE email=:email AND id<>:id`).get({ ":email": body.email, ":id": id })
   if (outro)
@@ -67,6 +71,9 @@ export const updateOne = async (c: Context) => {
   if (body.password) {
     db.query(`UPDATE usuarios SET password_hash=:hash WHERE id=:id`)
       .run({ ":id": id, ":hash": await Bun.password.hash(body.password) })
+    // desconecta os outros aparelhos que estavam logados com a senha antiga
+    // (a sessão de quem está trocando continua valendo)
+    encerrarSessoes(id, getCookie(c, "ses"))
   }
   atualizarSessoes(id, { nome: body.nome, email: body.email })
   return c.json(db.query(`SELECT ${COLS} FROM usuarios WHERE id=:id`).get({ ":id": id }))

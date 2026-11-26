@@ -25,6 +25,7 @@
           <input required type="email" name="email" placeholder="email">
           <input required type="password" name="password" placeholder="senha">
           <button>entrar</button>
+          <label for="esqueci" class="link">esqueci minha senha</label>
         </form>
 
         <input id="singin" name="zzz" type="radio" class="trigger">
@@ -36,10 +37,20 @@
           <input required minlength="6" type="password" name="password-confirm" placeholder="confirmar senha">
           <button>cadastrar-se</button>
         </form>
+
+        <!-- RECUPERAR SENHA (aba sem título: abre pelo link "esqueci minha senha") -->
+        <input id="esqueci" name="zzz" type="radio" class="trigger">
+        <form class="esqueci">
+          <p class="ajuda">Informe o email da sua conta. Vamos enviar um link para você criar uma nova senha.</p>
+          <input required type="email" name="email" placeholder="email">
+          <button>enviar link</button>
+          <label for="login" class="link">voltar para o login</label>
+        </form>
       </div>
     </div>
   </main>
 
+  <script type="module" src="./senha.js"></script>
   <script>
     // Se já estiver logado, vai direto para o dashboard
     fetch("/auth/user").then(r => { if (r.ok) window.location.href = "/dashboard" })
@@ -57,11 +68,8 @@
         })
       })
 
-      if (response.status == 404)
-        return alert("Usuário não cadastrado")
-
       if (response.status == 401)
-        return alert("Senha incorreta")
+        return alert("Email ou senha inválidos")
 
       if (response.ok) {
         window.location.href = "/dashboard"
@@ -103,6 +111,25 @@
       }
 
       alert("Erro no cadastro: " + await response.text())
+    })
+
+    // ----------------------------------------------------------------------
+
+    const frmEsqueci = document.querySelector("form.esqueci")
+
+    frmEsqueci.addEventListener("submit", async (event) => {
+      event.preventDefault()
+      const response = await fetch("/auth/esqueci-senha", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ "email": frmEsqueci.email.value })
+      })
+      if (!response.ok)
+        return alert("Erro: " + await response.text())
+      const data = await response.json()
+      alert(data.msg + " Confira sua caixa de entrada (e o spam).")
+      frmEsqueci.reset()
+      document.querySelector("#login").checked = true
     })
   </script>
 

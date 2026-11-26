@@ -4,7 +4,7 @@ import type { UsuarioLogado } from "../middleware/auth"
 
 const usuarioId = (c: Context) => (c.get("usuario") as UsuarioLogado).id
 
-// Total de receitas, despesas e saldo (?mes=YYYY-MM opcional)
+// Total de receitas, despesas e saldo (?mes=YYYY-MM e ?categoria=nome opcionais)
 export const resumo = (c: Context) => {
   const query = db.query(`
     SELECT
@@ -14,8 +14,13 @@ export const resumo = (c: Context) => {
     FROM transacoes
     WHERE usuario_id=:usuario_id
       AND (:mes IS NULL OR substr(data, 1, 7)=:mes)
+      AND (:categoria IS NULL OR categoria=:categoria)
   `)
-  const data: any = query.get({ ":usuario_id": usuarioId(c), ":mes": c.req.query("mes") ?? null })
+  const data: any = query.get({
+    ":usuario_id": usuarioId(c),
+    ":mes": c.req.query("mes") ?? null,
+    ":categoria": c.req.query("categoria") ?? null,
+  })
   return c.json({ ...data, saldo: data.receitas - data.despesas })
 }
 
@@ -32,7 +37,7 @@ export const porCategoria = (c: Context) => {
   return c.json(query.all({ ":usuario_id": usuarioId(c), ":mes": c.req.query("mes") ?? null }))
 }
 
-// Receitas x despesas mês a mês
+// Receitas x despesas mês a mês (?categoria=nome opcional)
 export const mensal = (c: Context) => {
   const query = db.query(`
     SELECT
@@ -41,9 +46,10 @@ export const mensal = (c: Context) => {
       COALESCE(SUM(CASE WHEN tipo='despesa' THEN valor END), 0) AS despesas
     FROM transacoes
     WHERE usuario_id=:usuario_id
+      AND (:categoria IS NULL OR categoria=:categoria)
     GROUP BY mes
     ORDER BY mes
   `)
-  const data: any[] = query.all({ ":usuario_id": usuarioId(c) })
+  const data: any[] = query.all({ ":usuario_id": usuarioId(c), ":categoria": c.req.query("categoria") ?? null })
   return c.json(data.map(m => ({ ...m, saldo: m.receitas - m.despesas })))
 }

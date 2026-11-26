@@ -13,11 +13,11 @@ const protoSchema: any = {
 const User = type(protoSchema)
 // na edição a senha é opcional (só troca se vier preenchida)
 const { password, ...semSenha } = protoSchema
-const UserId = type({ ...semSenha, "password?": "string >= 6", id: "string.numeric" })
+// para trocar a senha é preciso mandar também a senha atual (senhaAtual)
+const UserId = type({ ...semSenha, "password?": "string >= 6", "senhaAtual?": "string", id: "string.numeric" })
 
 const route = new Hono()
 route.post('/usuario', ffInputType(User), controller.create)   // cadastro: aberto
-route.get('/usuario', requireAuth, controller.listAll)
 // cada usuário só vê, edita e exclui a própria conta
 route.get('/usuario/:id', requireAuth, somenteProprio, controller.listOne)
 route.delete('/usuario/:id', requireAuth, somenteProprio, controller.deleteOne)

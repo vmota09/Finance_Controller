@@ -19,75 +19,96 @@
     </div>
   </header>
 
-  <main>
-    <!-- FILTRO DE MÊS -->
-    <div class="linha-form" style="margin-bottom: 16px">
-      <label>Mês: <input type="month" class="filtro-mes"></label>
-      <button class="todos sec">ver tudo</button>
+  <main class="largo">
+    <!-- TÍTULO (nome do mês escolhido) + FILTROS -->
+    <div class="cabecalho">
+      <h1 class="titulo-periodo">Visão geral</h1>
+      <div class="linha-form">
+        <label>Mês <input type="month" class="filtro-mes"></label>
+        <select class="filtro-categoria">
+          <option value="">todas as categorias</option>
+        </select>
+        <button class="todos sec">limpar filtros</button>
+      </div>
     </div>
 
-    <!-- RESUMO -->
-    <section class="cards">
-      <div class="card"><div class="rotulo">Receitas</div><div class="valor receita" data-campo="receitas">-</div></div>
-      <div class="card"><div class="rotulo">Despesas</div><div class="valor despesa" data-campo="despesas">-</div></div>
-      <div class="card"><div class="rotulo">Saldo</div><div class="valor" data-campo="saldo">-</div></div>
-    </section>
-
-    <!-- NOVA / EDITAR TRANSAÇÃO -->
-    <section class="painel">
-      <h2 class="titulo-form">Nova transação</h2>
-      <form class="transacao linha-form">
-        <select name="tipo" required>
-          <option value="despesa">despesa</option>
-          <option value="receita">receita</option>
-        </select>
-        <input required name="descricao" maxlength="100" placeholder="descrição">
-        <input required name="valor" type="number" min="0.01" step="0.01" placeholder="valor">
-        <select name="categoria">
-          <option>alimentacao</option>
-          <option>moradia</option>
-          <option>transporte</option>
-          <option>saude</option>
-          <option>lazer</option>
-          <option>educacao</option>
-          <option>salario</option>
-          <option selected>outros</option>
-        </select>
-        <input required name="data" type="date">
-        <button class="salvar">adicionar</button>
-        <button type="button" class="cancelar sec" hidden>cancelar</button>
-      </form>
-    </section>
-
-    <!-- LISTA DE TRANSAÇÕES -->
-    <section class="painel">
-      <h2>Transações</h2>
-      <div class="tabela-rolagem">
-        <table>
-          <thead>
-            <tr><th>Data</th><th>Descrição</th><th>Categoria</th><th class="num">Valor</th><th></th></tr>
-          </thead>
-          <tbody class="lista"></tbody>
-        </table>
+    <!-- RESUMO: 4 números + comparação com o mês anterior + quanto da renda foi gasto -->
+    <section class="resumo">
+      <div class="cards">
+        <div class="card"><div class="rotulo">Receitas</div><div class="valor receita" data-campo="receitas">-</div><div class="comparacao" data-comp="receitas"></div></div>
+        <div class="card"><div class="rotulo">Despesas</div><div class="valor despesa" data-campo="despesas">-</div><div class="comparacao" data-comp="despesas"></div></div>
+        <div class="card"><div class="rotulo">Saldo</div><div class="valor" data-campo="saldo">-</div><div class="comparacao" data-comp="saldo"></div></div>
+        <div class="card"><div class="rotulo">Lançamentos</div><div class="valor" data-campo="quantidade">-</div><div class="comparacao" data-comp="quantidade"></div></div>
+      </div>
+      <div class="medidor">
+        <div class="medidor-texto"></div>
+        <div class="medidor-trilho"><div class="medidor-barra"></div></div>
       </div>
     </section>
 
-    <!-- MÊS A MÊS (não usa o filtro de mês: mostra todos) -->
-    <section class="painel">
-      <h2>Mês a mês</h2>
-      <div class="legenda"><span class="receita">■ receitas</span><span class="despesa">■ despesas</span></div>
-      <div class="grafico"></div>
-    </section>
+    <div class="colunas">
+      <!-- COLUNA PRINCIPAL -->
+      <div>
+        <!-- NOVA / EDITAR TRANSAÇÃO -->
+        <section class="painel">
+          <h2 class="titulo-form">Nova transação</h2>
+          <form class="transacao linha-form">
+            <select name="tipo" required>
+              <option value="despesa">despesa</option>
+              <option value="receita">receita</option>
+            </select>
+            <input required name="descricao" maxlength="100" placeholder="descrição">
+            <input required name="valor" type="number" min="0.01" step="0.01" placeholder="valor">
+            <select name="categoria">
+              <option>alimentacao</option>
+              <option>moradia</option>
+              <option>transporte</option>
+              <option>saude</option>
+              <option>lazer</option>
+              <option>educacao</option>
+              <option>salario</option>
+              <option selected>outros</option>
+            </select>
+            <input required name="data" type="date">
+            <button class="salvar">adicionar</button>
+            <button type="button" class="cancelar sec" hidden>cancelar</button>
+          </form>
+        </section>
 
-    <!-- POR CATEGORIA -->
-    <section class="painel">
-      <h2>Por categoria</h2>
-      <div class="tabela-rolagem">
-        <table>
-          <tbody class="categorias"></tbody>
-        </table>
+        <!-- LISTA DE TRANSAÇÕES (agrupada por dia) -->
+        <section class="painel">
+          <h2>Transações</h2>
+          <div class="tabela-rolagem">
+            <table class="extrato">
+              <tbody class="lista"></tbody>
+            </table>
+          </div>
+        </section>
       </div>
-    </section>
+
+      <!-- COLUNA LATERAL -->
+      <aside>
+        <!-- DESPESAS POR CATEGORIA (clicar filtra) -->
+        <section class="painel">
+          <h2>Para onde foi o dinheiro</h2>
+          <div class="categorias"></div>
+          <div class="entradas"></div>
+        </section>
+
+        <!-- MAIORES GASTOS DO PERÍODO -->
+        <section class="painel">
+          <h2>Maiores gastos</h2>
+          <ol class="maiores"></ol>
+        </section>
+
+        <!-- MÊS A MÊS (não usa o filtro de mês: mostra os últimos 6 meses; usa o de categoria) -->
+        <section class="painel">
+          <h2>Mês a mês</h2>
+          <div class="legenda"><span class="receita">receitas</span><span class="despesa">despesas</span></div>
+          <div class="grafico"></div>
+        </section>
+      </aside>
+    </div>
   </main>
 
   <script>
@@ -98,15 +119,38 @@
       d.setMinutes(d.getMinutes() - d.getTimezoneOffset())
       return d.toISOString().slice(0, 10)
     }
+    // "2026-11" -> "novembro de 2026"  |  com curto = true -> "nov"
+    const MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"]
+    const nomeMes = (aaaamm, curto = false) => {
+      const [ano, mes] = aaaamm.split("-").map(Number)
+      return curto ? MESES[mes - 1].slice(0, 3) : `${MESES[mes - 1]} de ${ano}`
+    }
+    // "2026-11" -> "2026-10" (mês anterior)
+    const mesAnterior = (aaaamm) => {
+      const [ano, mes] = aaaamm.split("-").map(Number)
+      return mes == 1 ? `${ano - 1}-12` : `${ano}-${String(mes - 1).padStart(2, "0")}`
+    }
+    // "2026-11-20" -> "sexta, 20 de novembro"
+    const nomeDia = (aaaammdd) => {
+      const d = new Date(aaaammdd + "T12:00:00")
+      const semana = d.toLocaleDateString("pt-BR", { weekday: "long" }).replace("-feira", "")
+      return `${semana}, ${d.getDate()} de ${MESES[d.getMonth()]}`
+    }
 
     const filtroMes = document.querySelector(".filtro-mes")
+    const filtroCategoria = document.querySelector(".filtro-categoria")
     const frmTransacao = document.querySelector("form.transacao")
     const transacoes = {}   // id -> transação, para preencher o form na edição
     let editandoId = null   // null = criando nova; número = editando essa
 
-    // ?mes=YYYY-MM quando houver mês selecionado
-    function query() {
-      return filtroMes.value ? `?mes=${filtroMes.value}` : ""
+    // Monta a query string com os filtros: ?mes=YYYY-MM&categoria=nome
+    // mes: qual mês usar (padrão = o do filtro; null = nenhum)
+    // comCategoria: false para "Para onde foi o dinheiro", que mostra todas as categorias
+    function query(mes = filtroMes.value, comCategoria = true) {
+      const params = new URLSearchParams()
+      if (mes) params.set("mes", mes)
+      if (comCategoria && filtroCategoria.value) params.set("categoria", filtroCategoria.value)
+      return params.size ? "?" + params : ""
     }
 
     // Faz o fetch e volta para o login se a sessão tiver acabado
@@ -118,6 +162,7 @@
       }
       return response
     }
+    const getJson = async (url) => (await api(url)).json()
 
     // ----------------------------------------------------------------------
 
@@ -132,76 +177,177 @@
       return true
     }
 
-    async function carregarResumo() {
-      const data = await (await api("/dashboard/resumo" + query())).json()
-      for (const campo of ["receitas", "despesas", "saldo"]) {
-        document.querySelector(`[data-campo="${campo}"]`).textContent = moeda(data[campo])
+    // Título da página: nome do mês escolhido (ou "Todos os meses")
+    function atualizarTitulo() {
+      const titulo = filtroMes.value ? nomeMes(filtroMes.value) : "todos os meses"
+      document.querySelector(".titulo-periodo").textContent = titulo[0].toUpperCase() + titulo.slice(1)
+    }
+
+    // Texto "▲ 12% vs out" comparando com o mês anterior
+    // maiorEhBom: em despesas, subir é ruim (fica vermelho)
+    function comparacao(atual, anterior, maiorEhBom, rotuloMes) {
+      if (anterior == 0 && atual == 0) return { texto: `igual a ${rotuloMes}`, classe: "" }
+      if (anterior == 0) return { texto: `nada em ${rotuloMes}`, classe: "" }
+      const pct = Math.round((atual - anterior) / Math.abs(anterior) * 100)
+      if (pct == 0) return { texto: `igual a ${rotuloMes}`, classe: "" }
+      const subiu = pct > 0
+      return {
+        texto: `${subiu ? "▲" : "▼"} ${Math.abs(pct)}% vs ${rotuloMes}`,
+        classe: subiu == maiorEhBom ? "receita" : "despesa",
       }
+    }
+
+    async function carregarResumo() {
+      const mes = filtroMes.value
+      // busca o período escolhido e, se houver mês, também o mês anterior para comparar
+      const [data, ant] = await Promise.all([
+        getJson("/dashboard/resumo" + query()),
+        mes ? getJson("/dashboard/resumo" + query(mesAnterior(mes))) : null,
+      ])
+      for (const campo of ["receitas", "despesas", "saldo"])
+        document.querySelector(`[data-campo="${campo}"]`).textContent = moeda(data[campo])
+      document.querySelector(`[data-campo="quantidade"]`).textContent = data.quantidade
       // saldo verde se positivo, vermelho se negativo
       document.querySelector(`[data-campo="saldo"]`).className = "valor " + (data.saldo < 0 ? "despesa" : "receita")
+
+      // linha pequena embaixo de cada número
+      const comp = (campo) => document.querySelector(`[data-comp="${campo}"]`)
+      for (const [campo, bom] of [["receitas", true], ["despesas", false], ["saldo", true]]) {
+        const r = ant ? comparacao(data[campo], ant[campo], bom, nomeMes(mesAnterior(mes), true)) : { texto: "", classe: "" }
+        comp(campo).textContent = r.texto
+        comp(campo).className = "comparacao " + r.classe
+      }
+      // média de gasto por dia (no mês atual conta só os dias que já passaram)
+      if (mes && data.despesas > 0) {
+        const [ano, m] = mes.split("-").map(Number)
+        const dias = mes == hoje().slice(0, 7) ? new Date().getDate() : new Date(ano, m, 0).getDate()
+        comp("quantidade").textContent = `média de ${moeda(data.despesas / dias)}/dia em gastos`
+      } else {
+        comp("quantidade").textContent = ""
+      }
+
+      // medidor: quanto do que entrou já saiu
+      const texto = document.querySelector(".medidor-texto")
+      const barra = document.querySelector(".medidor-barra")
+      if (data.receitas > 0) {
+        const pct = Math.round(data.despesas / data.receitas * 100)
+        texto.innerHTML = `Você gastou <b>${pct}%</b> do que recebeu` +
+          (pct <= 100 ? ` · sobraram ${moeda(data.saldo)}` : ` · passou ${moeda(-data.saldo)} do que entrou`)
+        barra.style.width = Math.min(pct, 100) + "%"
+        barra.className = "medidor-barra" + (pct > 100 ? " estourou" : pct > 80 ? " alerta" : "")
+      } else {
+        texto.textContent = data.despesas > 0 ? "Nenhuma receita no período" : "Nada lançado no período"
+        barra.style.width = "0"
+      }
     }
 
     async function carregarTransacoes() {
-      const data = await (await api("/transacao" + query())).json()
+      const data = await getJson("/transacao" + query())
       const tbody = document.querySelector(".lista")
       tbody.innerHTML = ""
+      carregarMaiores(data)
       if (data.length == 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="vazio">nenhuma transação</td></tr>`
+        tbody.innerHTML = `<tr><td colspan="4" class="vazio">Nenhuma transação neste período. Use o formulário acima para lançar a primeira.</td></tr>`
         return
       }
+      // agrupa por dia (a lista já vem ordenada da data mais nova para a mais antiga)
+      let diaAtual = null
       for (const t of data) {
         transacoes[t.id] = t
+        if (t.data != diaAtual) {
+          diaAtual = t.data
+          // total do dia: receitas - despesas
+          const totalDia = data.filter(x => x.data == t.data)
+            .reduce((soma, x) => soma + (x.tipo == "receita" ? x.valor : -x.valor), 0)
+          const cab = document.createElement("tr")
+          cab.className = "dia"
+          cab.innerHTML = `<td colspan="2">${nomeDia(t.data)}</td><td class="num">${totalDia < 0 ? "-" : "+"}${moeda(Math.abs(totalDia))}</td><td></td>`
+          tbody.appendChild(cab)
+        }
         const tr = document.createElement("tr")
         tr.innerHTML = `
-          <td>${t.data.split("-").reverse().join("/")}</td>
           <td></td>
-          <td>${t.categoria}</td>
-          <td class="num ${t.tipo}">${t.tipo == "despesa" ? "-" : ""}${moeda(t.valor)}</td>
+          <td class="cat">${t.categoria}</td>
+          <td class="num ${t.tipo}">${t.tipo == "despesa" ? "-" : "+"}${moeda(t.valor)}</td>
           <td class="acoes">
             <button class="sec mini" data-acao="editar" data-id="${t.id}">editar</button>
             <button class="sec mini" data-acao="excluir" data-id="${t.id}">excluir</button>
           </td>
         `
-        tr.children[1].textContent = t.descricao // textContent evita injeção de HTML
+        tr.children[0].textContent = t.descricao // textContent evita injeção de HTML
         tbody.appendChild(tr)
       }
     }
 
-    async function carregarCategorias() {
-      const data = await (await api("/dashboard/categorias" + query())).json()
-      const tbody = document.querySelector(".categorias")
-      tbody.innerHTML = data.length == 0 ? `<tr><td class="vazio">sem dados</td></tr>` : ""
-      for (const c of data) {
-        tbody.innerHTML += `<tr><td>${c.categoria}</td><td class="${c.tipo}">${c.tipo}</td><td class="num">${moeda(c.total)}</td></tr>`
+    // Top 5 despesas do período (usa a lista que já veio do servidor)
+    function carregarMaiores(lista) {
+      const ol = document.querySelector(".maiores")
+      const maiores = lista.filter(t => t.tipo == "despesa").sort((a, b) => b.valor - a.valor).slice(0, 5)
+      ol.innerHTML = maiores.length ? "" : `<li class="vazio">sem despesas no período</li>`
+      for (const t of maiores) {
+        const li = document.createElement("li")
+        li.innerHTML = `<span class="desc"></span><span class="num despesa">${moeda(t.valor)}</span>
+          <small>${t.categoria} · ${t.data.split("-").reverse().slice(0, 2).join("/")}</small>`
+        li.querySelector(".desc").textContent = t.descricao
+        ol.appendChild(li)
       }
     }
 
+    // Despesas por categoria em barras com %; receitas listadas embaixo
+    async function carregarCategorias() {
+      const data = await getJson("/dashboard/categorias" + query(filtroMes.value, false))
+      const caixa = document.querySelector(".categorias")
+      const despesas = data.filter(c => c.tipo == "despesa")
+      const receitas = data.filter(c => c.tipo == "receita")
+      const total = despesas.reduce((s, c) => s + c.total, 0)
+      const marcada = (c) => c.categoria == filtroCategoria.value ? " selecionada" : ""
+
+      caixa.innerHTML = despesas.length ? "" : `<p class="vazio">sem despesas no período</p>`
+      for (const c of despesas) {
+        const pct = total ? c.total / total * 100 : 0
+        caixa.innerHTML += `
+          <div class="cat-linha${marcada(c)}" data-categoria="${c.categoria}" title="filtrar por ${c.categoria}">
+            <span class="cat-nome">${c.categoria}</span>
+            <span class="cat-pct">${Math.round(pct)}%</span>
+            <span class="num">${moeda(c.total)}</span>
+            <div class="cat-trilho"><div class="cat-barra" style="width: ${pct}%"></div></div>
+          </div>`
+      }
+      document.querySelector(".entradas").innerHTML = !receitas.length ? "" :
+        `<h3>Entradas</h3>` + receitas.map(c => `
+          <div class="cat-linha simples${marcada(c)}" data-categoria="${c.categoria}" title="filtrar por ${c.categoria}">
+            <span class="cat-nome">${c.categoria}</span><span></span><span class="num receita">${moeda(c.total)}</span>
+          </div>`).join("")
+    }
+
+    // Colunas dos últimos 6 meses: receita e despesa lado a lado
     async function carregarMensal() {
-      const data = await (await api("/dashboard/mensal")).json()
+      const data = (await getJson("/dashboard/mensal" + query(null))).slice(-6)
       const grafico = document.querySelector(".grafico")
       if (data.length == 0) {
-        grafico.innerHTML = `<div class="vazio">sem dados</div>`
+        grafico.innerHTML = `<p class="vazio">sem dados</p>`
         return
       }
-      // a maior barra ocupa 100% da largura; as outras são proporcionais a ela
+      // a maior coluna ocupa 100% da altura; as outras são proporcionais a ela
       const maior = Math.max(...data.map(m => Math.max(m.receitas, m.despesas)))
-      const largura = (v) => maior ? (v / maior * 100) + "%" : "0"
+      const altura = (v) => maior ? (v / maior * 100) + "%" : "0"
       grafico.innerHTML = ""
       for (const m of data) {
-        const [ano, mes] = m.mes.split("-")
+        const atual = m.mes == filtroMes.value ? " atual" : ""
         grafico.innerHTML += `
-          <div class="mes">
-            <div>${mes}/${ano}</div>
-            <div class="barras">
-              <div class="barra receita" style="width: ${largura(m.receitas)}" title="receitas: ${moeda(m.receitas)}"></div>
-              <div class="barra despesa" style="width: ${largura(m.despesas)}" title="despesas: ${moeda(m.despesas)}"></div>
+          <div class="mes${atual}" title="${nomeMes(m.mes)}: receitas ${moeda(m.receitas)}, despesas ${moeda(m.despesas)}">
+            <div class="colunas-mes">
+              <div class="coluna receita" style="height: ${altura(m.receitas)}"></div>
+              <div class="coluna despesa" style="height: ${altura(m.despesas)}"></div>
             </div>
-            <div class="saldo ${m.saldo < 0 ? "despesa" : "receita"}">${moeda(m.saldo)}</div>
+            <div class="mes-nome">${nomeMes(m.mes, true)}</div>
+            <div class="mes-saldo ${m.saldo < 0 ? "despesa" : ""}">${m.saldo < 0 ? "-" : ""}${Math.abs(Math.round(m.saldo)).toLocaleString("pt-BR")}</div>
           </div>`
       }
     }
 
     function atualizarTudo() {
+      atualizarTitulo()
       return Promise.all([carregarResumo(), carregarTransacoes(), carregarCategorias(), carregarMensal()])
     }
 
@@ -261,8 +407,18 @@
     })
 
     filtroMes.addEventListener("change", atualizarTudo)
+    filtroCategoria.addEventListener("change", atualizarTudo)
+    // clicar numa categoria da lateral filtra por ela (clicar de novo tira o filtro)
+    document.querySelector("aside").addEventListener("click", (event) => {
+      const linha = event.target.closest("[data-categoria]")
+      if (!linha) return
+      const cat = linha.dataset.categoria
+      filtroCategoria.value = filtroCategoria.value == cat ? "" : cat
+      atualizarTudo()
+    })
     document.querySelector(".todos").addEventListener("click", () => {
       filtroMes.value = ""
+      filtroCategoria.value = ""
       atualizarTudo()
     })
 
@@ -275,6 +431,9 @@
 
     async function init() {
       if (!await carregarUsuario()) return
+      // o filtro usa as mesmas categorias do formulário de nova transação
+      for (const opt of frmTransacao.categoria.options)
+        filtroCategoria.add(new Option(opt.value, opt.value))
       filtroMes.value = hoje().slice(0, 7)   // começa no mês atual
       frmTransacao.data.value = hoje()
       atualizarTudo()

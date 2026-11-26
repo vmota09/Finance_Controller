@@ -20,7 +20,9 @@
   </header>
 
   <main>
-    <h1>Minha conta</h1>
+    <div class="cabecalho">
+      <h1>Minha conta</h1>
+    </div>
 
     <!-- DADOS PESSOAIS -->
     <section class="painel">
@@ -37,20 +39,22 @@
     <section class="painel">
       <h2>Trocar senha</h2>
       <form class="senha campos">
-        <label>Nova senha <input required minlength="6" name="password" type="password"></label>
+        <label>Senha atual <input required name="senha-atual" type="password" autocomplete="current-password"></label>
+        <label>Nova senha <input required minlength="6" name="password" type="password" autocomplete="new-password"></label>
         <label>Confirmar nova senha <input required minlength="6" name="password-confirm" type="password"></label>
         <div><button>trocar senha</button></div>
       </form>
     </section>
 
     <!-- EXCLUIR CONTA -->
-    <section class="painel">
+    <section class="painel zona-perigo">
       <h2>Excluir conta</h2>
-      <p class="vazio">Apaga sua conta e todas as suas transações. Não dá para desfazer.</p>
+      <p>Apaga sua conta e todas as suas transações. Não dá para desfazer.</p>
       <button class="excluir perigo">excluir minha conta</button>
     </section>
   </main>
 
+  <script type="module" src="./senha.js"></script>
   <script>
     const frmDados = document.querySelector("form.dados")
     const frmSenha = document.querySelector("form.senha")
@@ -64,6 +68,13 @@
         throw new Error("não logado")
       }
       return response
+    }
+
+    // Nome no topo + letra da bolinha
+    function mostrarNome(nome) {
+      const el = document.querySelector(".profile .name")
+      el.textContent = nome
+      el.dataset.inicial = nome[0].toUpperCase()
     }
 
     // PUT /usuario/:id sempre manda nome, idade e email (+ senha se for trocar)
@@ -90,7 +101,7 @@
       if (!response.ok)
         return alert("Erro ao salvar: " + await response.text())
       usuario = await response.json()
-      document.querySelector(".profile .name").textContent = usuario.nome
+      mostrarNome(usuario.nome)
       alert("Dados salvos!")
     })
 
@@ -98,11 +109,16 @@
       event.preventDefault()
       if (frmSenha.password.value !== frmSenha["password-confirm"].value)
         return alert("As senhas não conferem")
-      const response = await salvar({ password: frmSenha.password.value })
+      const response = await salvar({
+        password: frmSenha.password.value,
+        senhaAtual: frmSenha["senha-atual"].value,
+      })
+      if (response.status == 403)
+        return alert("A senha atual está incorreta")
       if (!response.ok)
         return alert("Erro ao trocar a senha: " + await response.text())
       frmSenha.reset()
-      alert("Senha trocada!")
+      alert("Senha trocada! Outros aparelhos conectados à sua conta foram desconectados.")
     })
 
     document.querySelector(".excluir").addEventListener("click", async () => {
@@ -130,7 +146,7 @@
       }
       const logado = await response.json()
       usuario = await (await api(`/usuario/${logado.id}`)).json()   // traz a idade também
-      document.querySelector(".profile .name").textContent = usuario.nome
+      mostrarNome(usuario.nome)
       frmDados.nome.value = usuario.nome
       frmDados.idade.value = usuario.idade
       frmDados.email.value = usuario.email

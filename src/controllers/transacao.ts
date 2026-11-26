@@ -24,18 +24,20 @@ export const create = async (c: Context) => {
   return c.json({ id: resp.lastInsertRowid }, { status: 201 })
 }
 
-// Filtros opcionais: ?tipo=receita|despesa  ?mes=YYYY-MM
+// Filtros opcionais: ?tipo=receita|despesa  ?mes=YYYY-MM  ?categoria=nome
 export const listAll = (c: Context) => {
   const tipo = c.req.query("tipo") ?? null
   const mes = c.req.query("mes") ?? null
+  const categoria = c.req.query("categoria") ?? null
   const query = db.query(`
     SELECT * FROM transacoes
     WHERE usuario_id=:usuario_id
       AND (:tipo IS NULL OR tipo=:tipo)
       AND (:mes  IS NULL OR substr(data, 1, 7)=:mes)
+      AND (:categoria IS NULL OR categoria=:categoria)
     ORDER BY data DESC, id DESC
   `)
-  const data = query.all({ ":usuario_id": usuarioId(c), ":tipo": tipo, ":mes": mes })
+  const data = query.all({ ":usuario_id": usuarioId(c), ":tipo": tipo, ":mes": mes, ":categoria": categoria })
   return c.json(data)
 }
 
